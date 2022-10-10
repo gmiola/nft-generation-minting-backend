@@ -1,0 +1,4 @@
+the 1 NFT has been generate at the 1-th iteration
+the 2 NFT has been generate at the 2-th iteration
+the 3 NFT has been generate at the 3-th iteration
+The total generating time is: 1 secondi
