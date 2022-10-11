@@ -34,8 +34,10 @@ public class StorageServiceImpl implements StorageService{
             Path path = Files.createDirectories(Paths.get("uploads/"+address+"/"+layer)); //does not overwrite directories
             Files.copy(file.getInputStream(), path.resolve(file.getOriginalFilename()));
 
-            //Setup also for the output of the generation
+            //Setup also directories for the output of the generation and the metadata
             Path out = Files.createDirectories(Paths.get("uploads/"+address+"/Results"));
+            Path meta = Files.createDirectories(Paths.get("uploads/"+address+"/Metadata"));
+
 
         } catch (Exception e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());

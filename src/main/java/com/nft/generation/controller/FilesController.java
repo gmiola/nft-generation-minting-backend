@@ -36,8 +36,6 @@ public class FilesController {
 
 
 //    private final Path root = Paths.get("uploads");
-
-
     @PostMapping("/upload")
     public ResponseEntity<ResponseMessage> uploadFile(@RequestParam("file") MultipartFile file,
                                                       @RequestParam(name="address") String address,
@@ -54,21 +52,6 @@ public class FilesController {
             return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(message));
         }
     }
-
-//Jackson utilities convert the json object in the body to ObjToTxt automatically
-    @PostMapping("/configure")
-    public ResponseEntity<ResponseMessage> prova(@RequestBody JsonNode json) {
-
-        System.out.println("Java got Json: " + json.toString());
-        System.out.println("Addresss: " + json.get("address"));
-        System.out.println("NumLayers: " + json.get("numLayers"));
-
-        pythonRunner.start(json);
-
-
-        return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(json.toString()));
-        }
-
     @DeleteMapping("/deleteDir")
     public ResponseEntity<ResponseMessage> uploadFile(@RequestParam(name="address") String address,
                                                       @RequestParam(name="layer") String layer) {
@@ -85,21 +68,6 @@ public class FilesController {
             return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new ResponseMessage(message));
         }
     }
-
-    @GetMapping("/files")
-    public ResponseEntity<List<FileInfo>> getListFiles() {
-        List<FileInfo> fileInfos = storageService.loadAll(Paths.get("uploads")).map(path -> {
-            String filename = path.getFileName().toString();
-            String url = MvcUriComponentsBuilder
-                    .fromMethodName(FilesController.class, "getFile", path.getFileName().toString()).build().toString();
-
-            return new FileInfo(filename, url);
-        }).collect(Collectors.toList());
-
-        return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
-    }
-
-
     @PostMapping("/generate")
     public ResponseEntity<List<FileInfo>> generateNFT(@RequestParam(name="address") String address, @RequestBody JsonNode json) {
         pythonRunner.start(json); //in the json there are all the arguments for the py script
@@ -116,8 +84,6 @@ public class FilesController {
         return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
     }
 
-
-
     //for the browser to load results images
     @GetMapping("/files/{filename:.+}")
     @ResponseBody
@@ -127,6 +93,33 @@ public class FilesController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
                 .body(file);
     }
+
+    //UTILITY
+    @PostMapping("/configure")
+    public ResponseEntity<ResponseMessage> prova(@RequestBody JsonNode json) {
+
+        System.out.println("Java got Json: " + json.toString());
+        System.out.println("Addresss: " + json.get("address"));
+        System.out.println("NumLayers: " + json.get("numLayers"));
+
+        pythonRunner.start(json);
+
+
+        return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(json.toString()));
+    }
+
+  /*  @GetMapping("/files")
+    public ResponseEntity<List<FileInfo>> getListFiles() {
+        List<FileInfo> fileInfos = storageService.loadAll(Paths.get("uploads")).map(path -> {
+            String filename = path.getFileName().toString();
+            String url = MvcUriComponentsBuilder
+                    .fromMethodName(FilesController.class, "getFile", path.getFileName().toString()).build().toString();
+
+            return new FileInfo(filename, url);
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.status(HttpStatus.OK).body(fileInfos);
+    }*/
 
 }
 

@@ -13,16 +13,34 @@ import json, pathlib, requests
 #ipfs.io/ipfs/QmZqRmpFHtN7vNkEJr2JrjYAuWXHJG3Nb2muC8EPWtWhsa?filenamest-bernard.png address example on ipfs
 #ipfs.io/ipfs/QmZqRmpFHtN7vNkEJr2JrjYAuWXHJG3Nb2muC8EPWtWhsa?filenamest-bernard.png
 
-def set_meta_dict(filepath):                                                #this function allows us to set the metadata list.
-    d = []                                                                  #it reads the filepath of where the document is stored.
+def set_meta_dict(filepath, data):                                                #this function allows us to set the metadata list.
+    '''d = []                                                                  #it reads the filepath of where the document is stored.
     fp = open(filepath, "r")                                                #in the first line there are the names of the field that will appear
     line1 = fp.readline().strip()                                           #in the json file. The fields are divided by a space.
     line1 = line1.split(' ')                                                #For all the lines that comes next, append a list containing the  
     for line in fp:                                                         #possible values of the fied inside of our list.
         temp = line.strip()                                                 #return in the end the final list containing all the single lists.
         temp = temp.split(' ')                                              
-        d.append(temp)                                                      
-    return d,line1                                                          
+        d.append(temp)
+    print("d:", d)
+    '''
+    _d = []
+    for c in data["cardinalities"]:     
+        l = [str(x) for x in range(1,c+1)]
+        l.insert(0, '0')
+        _d.append(l)
+    _d.pop(0) #first line is a separate case (_line1 list) it contains the layers/fields names
+    
+    #the first layer's field values are characters, the others' are numbers (just a choice)
+    for n in range(1, len(_d[0])): 
+        _d[0][n] = chr(n+64) 
+    print("_d:", _d)
+
+    _line1 = data["layers"].copy()
+    _line1.pop(0) #first layer is base layer, no need for its name
+    _line1.insert(0, str(0)) #for compatibility
+
+    return _d,_line1                                                          
 
 def get_meta(fields,p):                                                     #this function allows us to return one of the arrays that will                   
     return fields[p]                                                        #give us the value of the metadata.
@@ -116,7 +134,8 @@ def step2(my_file, nLayers, nElements, data):
         print("something went worng with the line reading...")              #errror message in case the readline() found something unusual
     try:                                                                    #I try to read the path of where i'm gonna save my metadata files.
         metadata_save= my_file.readline().strip()                           #in case the path is wrong or not found is gonna be thrown an 
-        pathManipulation(metadata_save)                                     #exception and notify the user the error.
+        pathManipulation(metadata_save)                                    #exception and notify the user the error.
+        metadata_save= basePath+'Metadata/metadata'
     except:                                                                 #otherwise, it's gonna be called the path manipulation function
         print("something went wrong with the metadata path...")             #of the stored path for the metadata folder.
 
@@ -129,7 +148,7 @@ def step2(my_file, nLayers, nElements, data):
     #all paths have to be: $base/Layername/layername (for some debatable reason)
     paths = [(basePath + l + '/' + l.lower()) for l in layers]
     #paths[0] is a special path where the base image is stored, must have the following name
-    paths[0] = '../uploads/0xD7269ec13025d66257F436A9624D6231C9fb52a6/Pace/pace1.png'
+    paths[0] = basePath + 'Pace/pace1.png'
 
     print("Paths created: ", paths)
 
@@ -191,8 +210,10 @@ def path_generation(nLayers,paths,randoms,Layer):
     try:                                                                    #here we fill our layer array so that we can use the final path
         for j in range(1,nLayers):                                          #to directly access to the elements of our NFT.
             temp = paths[j] + str(randoms[j]) + ".png"                      #i create the final path of the random element of the j-th layer
-            s = pathManipulation(temp)                                      #i clean the path the user put in the command-line
-            convertImage(s)                                                 #i convert the image so that each single picture has a transparent
+            s = pathManipulation(temp)  
+                                                                            #i clean the path the user put in the command-line
+            convertImage(s)      
+                                                                            #i convert the image so that each single picture has a transparent
                                                                             #background
             Layer.append(s)                                                 #that stores the path of the j-th element of the layer
             temp = ""                                                       #i clean the temporari path so that i can create a new one for the
@@ -206,6 +227,7 @@ def path_generation(nLayers,paths,randoms,Layer):
 # is gonna be merged with our background. For more specifics read the pillow documentation. 
 def image_generator(Layer,nLayers,destination,count):
     try:
+
             baseImage = Image.open(Layer[0])                                #the baseImage is the image that is gonna give us the final result
     except:
         print("error in opening the baseImage file...")                     #error message in case there is a problem in opening the baseImage
@@ -282,7 +304,7 @@ def main():
                                                                             #create
     count = 0                                                               #it will store the number of NFT produced succesfully.
     iterations = 0                                                          #it will store the number of iterations the program does.
-    d,fields = set_meta_dict("field_values.txt")                            #the d list and the fields are given by the set_meta_dict function.
+    d,fields = set_meta_dict("field_values.txt", data)                            #the d list and the fields are given by the set_meta_dict function.
     max_mint,log, my_file,destination, nLayers, num_NFT = setup(data)                 #the first elements we need are given by setup() fuction
     nLayers, nElements, combinations, paths,metadata_save = step2(my_file,nLayers,nElements, data)#same with the reading of the paths.txt file thorugh
                                                                             #the step2() function.
